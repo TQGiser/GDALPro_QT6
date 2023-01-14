@@ -4,7 +4,6 @@
 #include <gdal_priv.h>
 #include <iostream>
 
-using namespace std;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -30,14 +29,15 @@ QList<int> const getBandInfoMin( GDALRasterBand* poBand ){
 
 void MainWindow::on_pushButton_clicked()
 {
+    ui->plainTextEdit->clear();
     GDALAllRegister();
     QString pic =  QFileDialog::getOpenFileName(this,"选择影像","","Images(*.jpg | *.tif)");
-    string pic2 = pic.toStdString();
+    std::string pic2 = pic.toStdString();
     const char * pszFile = pic2.c_str();
     GDALDataset* poDataset = (GDALDataset*)GDALOpen(pszFile, GA_ReadOnly);
 
     const char * driverName = poDataset->GetDriverName();
-    string str(driverName);
+    std::string str(driverName);
     if(str == "JPEG")
     {
 
@@ -50,8 +50,14 @@ void MainWindow::on_pushButton_clicked()
             ui->plainTextEdit->appendPlainText("波段" + QString::number(i) + "最大值 : " + QString::number(getBandInfoMin(poBand).last()));
         }
 
-         /* GPS信息 */
         char** papszMetadata = poDataset->GetMetadata(NULL);
+        /*获取全部元数据信息*/
+//        if(CSLCount(papszMetadata)>0)
+//        {
+//            for(int i=0;papszMetadata[i]!=NULL;i++)
+//                ui->plainTextEdit->appendPlainText(papszMetadata[i]);
+//        }
+
         /* 全部GPS信息
         if(CSLCount(papszMetadata)>0)
         {
@@ -66,7 +72,7 @@ void MainWindow::on_pushButton_clicked()
         }
         */
 
-        /* 部分GPS信息*/
+        /* 部分GPS+时间信息 */
         if(CSLCount(papszMetadata)>0)
         {
             for(int i=0;papszMetadata[i]!=NULL;i++){
@@ -102,9 +108,22 @@ void MainWindow::on_pushButton_clicked()
                     ui->plainTextEdit->appendPlainText("纬度 : " + QString::number(Longitude,'f',8) );
                 }
 
+                if(info.contains("Digitized",Qt::CaseSensitive))
+                {
+                    QStringList temp1 = info.split("=")[1].split(" ");
+                    QString date = temp1[0];
+                    QString time = temp1[1];
+
+                   ui->plainTextEdit->appendPlainText("拍摄日期 : " + date );
+                   ui->plainTextEdit->appendPlainText("拍摄时间 : " + time );
+
+                }
+
         }
+     }
     }
-    else if(str =="GTiff" )
+
+    if(str =="GTiff" )
     {
         QString Projected = "Projection(1:YES;2:NO) :" + QString::number(poDataset->GetSpatialRef()->IsProjected());
         QString SemiMajor = "长轴半径 = " + QString::number(poDataset->GetSpatialRef()->GetSemiMajor(),'f',0);
@@ -204,6 +223,6 @@ void MainWindow::on_pushButton_clicked()
 //    }
 
 */
-    }
-
 }
+
+
