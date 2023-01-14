@@ -108,7 +108,7 @@ void MainWindow::on_pushButton_clicked()
                     ui->plainTextEdit->appendPlainText("纬度 : " + QString::number(Longitude,'f',8) );
                 }
 
-                if(info.contains("Digitized",Qt::CaseSensitive))
+                if(info.contains("DateTimeDigitized",Qt::CaseSensitive))
                 {
                     QStringList temp1 = info.split("=")[1].split(" ");
                     QString date = temp1[0];
